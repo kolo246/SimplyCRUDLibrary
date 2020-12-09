@@ -6,14 +6,15 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.sql.DataSource;
-
 @Configuration
 public class Datasource {
 
     @Bean
     @ConfigurationProperties("app.datasource")
     public HikariDataSource dataSource() {
-        return DataSourceBuilder.create().type(HikariDataSource.class).build();
+        return DataSourceBuilder
+                .create()
+                .type(HikariDataSource.class)
+                .build();
     }
 }

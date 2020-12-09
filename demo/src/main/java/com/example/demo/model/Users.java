@@ -1,15 +1,14 @@
 package com.example.demo.model;
 
 import javax.persistence.*;
-import java.util.UUID;
 
 @Entity
-@Table
+@Table(name = "person")
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private UUID id;
-
+    private Long id;
+    @Column(name = "user_name")
     private String username;
 
     public Users() {
@@ -20,11 +19,11 @@ public class Users {
         this.username = username;
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
