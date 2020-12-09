@@ -12,20 +12,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1")
 public class UsersController {
-
     @Autowired
     public UsersRepository usersRepository;
-
     @GetMapping("/person")
     public List<Users> getAllUsers(){
         return this.usersRepository.findAll();
     }
-
     @PostMapping("/person")
     public Users createUser(@RequestBody Users user){
         return this.usersRepository.save(user);
     }
-
-
-
 }
