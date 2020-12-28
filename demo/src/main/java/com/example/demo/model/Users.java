@@ -3,12 +3,12 @@ package com.example.demo.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "person")
+@Table(name = "users")
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "user_name")
+    @JoinColumn(name = "user_name")
     private String username;
     public Users() {
         super();

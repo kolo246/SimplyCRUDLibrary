@@ -3,8 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.model.Users;
 import com.example.demo.repository.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.embedded.undertow.UndertowServletWebServer;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,8 +10,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1")
 public class UsersController {
-    @Autowired
-    public UsersRepository usersRepository;
+    public final UsersRepository usersRepository;
+
+    public UsersController(UsersRepository usersRepository) {
+        this.usersRepository = usersRepository;
+    }
     @GetMapping("/person")
     public List<Users> getAllUsers(){
         return this.usersRepository.findAll();
