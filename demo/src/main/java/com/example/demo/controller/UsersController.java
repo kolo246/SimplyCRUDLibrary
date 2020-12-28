@@ -9,18 +9,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
-public class UsersController {
-    public final UsersRepository usersRepository;
-
-    public UsersController(UsersRepository usersRepository) {
-        this.usersRepository = usersRepository;
-    }
-    @GetMapping("/person")
-    public List<Users> getAllUsers(){
+public class UsersController{
+    @Autowired
+    private UsersRepository usersRepository;
+    @GetMapping("get_users")
+    public List<Users> getAllUsers() {
         return this.usersRepository.findAll();
     }
-    @PostMapping("/person")
-    public Users createUser(@RequestBody Users user){
+    @PostMapping("post_user")
+    public Users postUser(@RequestBody Users user){
         return this.usersRepository.save(user);
     }
 }
