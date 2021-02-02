@@ -1,30 +1,23 @@
 package com.example.demo.model;
 
 import javax.persistence.*;
-import java.util.UUID;
 
 @Entity
 @Table(name = "users")
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private UUID id;
+    private long id;
     @Column(name = "user_name")
-    private String username;
+    private String userName;
     public Users() {}
     public Users(String username) {
-        this.username = username;
+        this.userName = username;
     }
-    public UUID getId() {
+    public long getId() {
         return id;
     }
-    public void setId(UUID id) {
-        this.id = id;
-    }
-    public String getUsername() {
-        return username;
-    }
-    public void setUsername(String username) {
-        this.username = username;
+    public String getUserName() {
+        return userName;
     }
 }
