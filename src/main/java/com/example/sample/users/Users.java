@@ -28,7 +28,7 @@ public class Users {
     @Column(name = "age")
     private Integer age;
     @Column(name = "isdeleted")
-    private boolean isDeleted;
+    private boolean deleted;
 
     public Users(String name, String email, String phoneNumber, Integer age) {
         this.name = name;
