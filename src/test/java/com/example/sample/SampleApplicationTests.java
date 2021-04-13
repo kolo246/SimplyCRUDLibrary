@@ -69,7 +69,7 @@ class SampleApplicationTests {
         when(usersRepo.save(user)).thenReturn(user);
         mockMvc.perform(post("/api/users")
                 .accept(MediaType.APPLICATION_JSON)
-                .contentType(objectMapper.writeValueAsString(user)))
+                .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isOk());
     }
 }

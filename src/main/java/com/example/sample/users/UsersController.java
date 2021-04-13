@@ -6,12 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @RestController
@@ -19,6 +22,8 @@ import java.util.List;
 public class UsersController {
     private final UsersRepository usersRepo;
     private final PagingRepository pagingRepo;
+    public static final String defaultPages = "0";
+    public static final String defaultSize = "5";
 
     @Autowired
     public UsersController(UsersRepository usersRepo, PagingRepository pagingRepo){
@@ -33,19 +38,19 @@ public class UsersController {
     }
 
     @GetMapping(value = "/users{pages}{size}", params = {"pages","size"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Users> getUsers(@RequestParam (value = "pages", defaultValue = "0") int pages,
-                                @RequestParam (value = "size", defaultValue = "3") int size){
-        PageRequest page = PageRequest.of(pages,size);
+    public List<Users> getUsers(@RequestParam (value = "pages", defaultValue = defaultPages) int pages,
+                                @RequestParam (value = "size", defaultValue = defaultSize) int size){
+        PageRequest page = PageRequest.of(pages,size, Sort.by(Sort.Order.asc("name")));
         return pagingRepo.findAll(page);
     }
 
-    @RequestMapping(value = "/users{id}", params = "id", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Users getUserById(@RequestParam(value = "id", required = false) Long id){
+    @RequestMapping(value = "/users/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Users getUserById(@PathVariable(value = "id", required = false) Long id){
         return usersRepo.findByIdAndDeletedIsFalse(id)
                 .orElseThrow(NotFoundException::new);
     }
 
-    @RequestMapping(value = "/users{name}", params = "name", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/users/{name}", params = "name", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Users getUserByName(@RequestParam(value = "name", required = false) String name){
         return usersRepo.findByNameAndDeletedIsFalse(name)
                 .orElseThrow(NotFoundException::new);
@@ -53,10 +58,13 @@ public class UsersController {
 
     @PostMapping(value = "/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Users postUser(@RequestBody Users user){
-        return usersRepo.save(user);
+        Users saveUser = usersRepo.saveAndFlush(user);
+        usersRepo.flush();
+        saveUser.setId(saveUser.getId());
+        return saveUser;
     }
 
-    @PatchMapping(path = "/users{id}", consumes = "application/json+patch")
+    @PatchMapping(path = "/users/{id}", consumes = "application/json+patch")
     public ResponseEntity<Users> updateUsers(@RequestParam(value = "id") Long id, @RequestBody JsonPatch patch){
         try{
             Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(NotFoundException::new);
@@ -70,8 +78,8 @@ public class UsersController {
         }
     }
 
-    @DeleteMapping("/users{id}")
-    public Users deleteUserById(@RequestParam("id") Long id){
+    @DeleteMapping("/users/{id}")
+    public Users deleteUserById(@PathVariable("id") Long id){
         Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(NotFoundException::new);
         user.setDeleted(true);
         return usersRepo.save(user);
