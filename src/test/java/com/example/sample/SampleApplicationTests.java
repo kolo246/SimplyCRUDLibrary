@@ -2,82 +2,57 @@ package com.example.sample;
 
 import com.example.sample.users.NotFoundException;
 import com.example.sample.users.Users;
-import com.example.sample.users.UsersController;
 import com.example.sample.users.UsersRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.catalina.User;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.List;
+import java.util.Optional;
 
-import static org.mockito.BDDMockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.when;
 
+@RunWith(SpringRunner.class)
 @SpringBootTest
-@AutoConfigureMockMvc
-class SampleApplicationTests {
-    @Autowired
-    private MockMvc mockMvc;
-    @MockBean
-    private UsersController usersController;
+public class SampleApplicationTests {
+
     @MockBean
     private UsersRepository usersRepo;
-    private final Users user = new Users("Wladek","wladek@wp.pl","123-456-7891",24);
+    private final Users user = new Users("Wladek", "wladek@wp.pl", "123-456-7891", 24);
+
     @Test
-    public void testGetAllUsers() throws Exception {
-        mockMvc.perform(get("/api/users"))
-                .andExpect(status().isOk());
+    public void testSaveUser() {
+        when(usersRepo.save(user)).thenReturn(user);
+        Users saveUser = usersRepo.save(user);
+        Assertions.assertEquals(saveUser.getName(), user.getName());
     }
+
     @Test
-    public void testGetUserById() throws Exception {
-        mockMvc.perform(get("/api/users/id/1"))
-                .andExpect(status().isOk());
+    public void testGetUseById() {
+        Long id = 1L;
+        Optional<Users> user = usersRepo.findByIdAndDeletedIsFalse(id);
+        when(usersRepo.findByIdAndDeletedIsFalse(id)).thenReturn(user);
     }
+
     @Test
-    public void testGetUserByName() throws Exception {
-        mockMvc.perform(get("/api/users/name/Dru"))
-                .andExpect(status().isOk());
+    public void testGetUserByIdNotFound() {
+        Long id = 1L;
+        given(usersRepo.findByIdAndDeletedIsFalse(id)).willThrow(new NotFoundException());
     }
+
     @Test
-    public void testNotFoundUserById() throws Exception {
-        when(usersController.getUserById(0L)).thenReturn(null);
-        mockMvc.perform(get("/api/users/id/0"))
-                .andExpect(status().isNotFound());
+    public void testGetUserByName() {
+        String name = "Pablo";
+        Optional<Users> user = usersRepo.findByNameAndDeletedIsFalse(name);
+        when(usersRepo.findByNameAndDeletedIsFalse(name)).thenReturn(user);
     }
+
     @Test
-    public void testNotFoundUserByName() throws Exception {
-        given(usersController.getUserByName("Dro")).willReturn(null);
-        mockMvc.perform(get("/api/users/name/Dro"))
-                .andExpect(status().isNotFound());
-    }
-    @Test
-    public void testPostUser() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-        given(usersController.postUser(user)).willReturn(user);
-        mockMvc.perform(post("/api/users")
-                .accept(MediaType.APPLICATION_JSON_VALUE)
-                .contentType(objectMapper.writeValueAsString(
-                        new Users("Jozek","jozek@wp.pl","123-123-1234",35))))
-                .andExpect(status().isOk());
-    }
-    @Test
-    public void testGetFiveUsers() throws Exception {
-        List<Users> usersList = usersController.getFiveUsers();
-        given(usersController.getFiveUsers()).willReturn(usersList);
-        mockMvc.perform(get("/api/users/page"))
-                .andExpect(status().isOk());
-    }
-    @Test
-    public void testDeleteUserById() throws Exception {
-        mockMvc.perform(delete("api/users/1"))
-                .andExpect(status().isOk());
+    public void testTestUserByNameNotFound() {
+        String name = "Pablo";
+        given(usersRepo.findByNameAndDeletedIsFalse(name)).willThrow(new NotFoundException());
     }
 }

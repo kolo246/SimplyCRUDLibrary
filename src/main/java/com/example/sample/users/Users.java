@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Table(name = "users")
 public class Users {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private Long id;
     @NotNull
@@ -28,7 +28,7 @@ public class Users {
     @Column(name = "age")
     private Integer age;
     @Column(name = "isdeleted")
-    private boolean isDeleted;
+    private boolean deleted;
 
     public Users(String name, String email, String phoneNumber, Integer age) {
         this.name = name;
