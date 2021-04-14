@@ -58,14 +58,11 @@ public class UsersController {
 
     @PostMapping(value = "/users", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Users postUser(@RequestBody Users user){
-        Users saveUser = usersRepo.saveAndFlush(user);
-        usersRepo.flush();
-        saveUser.setId(saveUser.getId());
-        return saveUser;
+        return usersRepo.save(user);
     }
 
-    @PatchMapping(path = "/users/{id}", consumes = "application/json+patch")
-    public ResponseEntity<Users> updateUsers(@RequestParam(value = "id") Long id, @RequestBody JsonPatch patch){
+    @PatchMapping(path = "/users/{id}", consumes = "application/json-patch+json")
+    public ResponseEntity<Users> updateUsers(@PathVariable(value = "id") Long id, @RequestBody JsonPatch patch){
         try{
             Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(NotFoundException::new);
             Users userPatch = applyUsersToPatch(patch,user);

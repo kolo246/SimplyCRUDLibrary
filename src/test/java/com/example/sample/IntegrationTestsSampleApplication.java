@@ -26,6 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.AssertionErrors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -48,8 +49,6 @@ public class IntegrationTestsSampleApplication {
     private MockMvc mockMvc;
     @Autowired
     private UsersRepository usersRepo;
-    @Autowired
-    private PagingRepository pagingRepo;
     @Autowired
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -77,34 +76,48 @@ public class IntegrationTestsSampleApplication {
         MvcResult result = mockMvc.perform(get("/api/users?pages&size"))
                 .andExpect(status().isOk())
                 .andReturn();
-        List<Users> listUsers = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<Users>>(){});
-        Assertions.assertEquals(Integer.parseInt(UsersController.defaultSize),listUsers.size());
+        List<Users> listUsers = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        });
+        Assertions.assertEquals(Integer.parseInt(UsersController.defaultSize), listUsers.size());
         //test random values for pages and size
-        MvcResult randomResult = mockMvc.perform(get("/api/users").param("pages","0").param("size","3"))
-                                    .andExpect(status().isOk())
-                                    .andReturn();
-        List<Users> randomList = objectMapper.readValue(randomResult.getResponse().getContentAsString(), new TypeReference<List<Users>>(){});
-        Assertions.assertEquals(3,randomList.size());
+        MvcResult randomResult = mockMvc.perform(get("/api/users").param("pages", "0").param("size", "3"))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<Users> randomList = objectMapper.readValue(randomResult.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        });
+        Assertions.assertEquals(3, randomList.size());
         //test case if calling pagination multiple time, last call should return 0 element
         MvcResult mvcResult;
-        mvcResult = mockMvc.perform(get("/api/users").param("pages","0").param("size","3"))
+        mvcResult = mockMvc.perform(get("/api/users").param("pages", "0").param("size", "3"))
                 .andExpect(status().isOk())
                 .andReturn();
-        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>(){});
-        Assertions.assertEquals(3,listUsers.size());
+        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        });
+        Assertions.assertEquals(3, listUsers.size());
 
-        mvcResult = mockMvc.perform(get("/api/users").param("pages","1").param("size","3"))
+        mvcResult = mockMvc.perform(get("/api/users").param("pages", "1").param("size", "3"))
                 .andExpect(status().isOk())
                 .andReturn();
-        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>(){});
-        Assertions.assertEquals(2,listUsers.size());
+        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        });
+        Assertions.assertEquals(2, listUsers.size());
 
-        mvcResult = mockMvc.perform(get("/api/users").param("pages","2").param("size","3"))
+        mvcResult = mockMvc.perform(get("/api/users").param("pages", "2").param("size", "3"))
                 .andExpect(status().isOk())
                 .andReturn();
-        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>(){});
-        Assertions.assertEquals(0,listUsers.size());
+        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        });
+        Assertions.assertEquals(0, listUsers.size());
         //sprawdz czy zwraca alafabetycznie
+        mvcResult = mockMvc.perform(get("/api/users?pages&size"))
+                .andExpect(status().isOk())
+                .andReturn();
+        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>(){});
+        Assertions.assertEquals(listUsers.get(0).getName(),"Andrzej");
+        Assertions.assertEquals(listUsers.get(1).getName(),"Jasiek");
+        Assertions.assertEquals(listUsers.get(2).getName(),"Pablo");
+        Assertions.assertEquals(listUsers.get(3).getName(),"Tadek");
+        Assertions.assertEquals(listUsers.get(4).getName(),"Wladek");
     }
 
     @Test
@@ -131,10 +144,10 @@ public class IntegrationTestsSampleApplication {
         //comparing objects, responseUser must be equal to getUsers
         Assertions.assertEquals(responseUser, getUsers);
         //test delete users by id, after that user is not found
-        mockMvc.perform(delete("/api/users/{id}",responseUser.getId()))
+        mockMvc.perform(delete("/api/users/{id}", responseUser.getId()))
                 .andExpect(status().isOk());
         //user is not found
-        mockMvc.perform(get("/api/users/{id}",responseUser.getId()))
+        mockMvc.perform(get("/api/users/{id}", responseUser.getId()))
                 .andExpect(status().isNotFound());
     }
 
