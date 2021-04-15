@@ -1,0 +1,21 @@
+services: #service 1: definition of PostgrSQL database
+  db:
+    image: postgres:alpine
+    container_name: postgresDB
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+    restart: always
+  #service 2: definition of my spring-boot app
+  customerservice:
+    image: sample:0.0.1-SNAPSHOT
+    container_name: sample
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_DB_PASSWORD=password
+      - POSTGRES_DB_USERNAME=postgres
+      - POSTGRES_DB_URL=jdbc:postgresql://postgresDB:5432/postgres
