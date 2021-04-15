@@ -87,7 +87,7 @@ public class IntegrationTestsSampleApplication {
                 .andReturn();
         List<Users> randomList = objectMapper.readValue(randomResult.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
         });
-        Assertions.assertEquals(3, randomList.size());
+        Assertions.assertEquals(5, randomList.size());
         //test case if calling pagination multiple time, last call should return 0 element
         MvcResult mvcResult;
         mvcResult = mockMvc.perform(get("/api/users").param("pages", "0").param("size", "3"))
