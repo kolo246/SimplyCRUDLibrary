@@ -19,7 +19,7 @@ import static org.mockito.BDDMockito.when;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @TestPropertySource("classpath:application-unit.properties")
-public class SampleApplicationTests {
+public class SampleTest {
 
     @MockBean
     private UsersRepository usersRepo;
