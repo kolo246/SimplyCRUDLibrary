@@ -22,12 +22,12 @@ public class Users {
     @Column(name = "email")
     private String email;
     @NotNull
-    @Column(name = "phonenumber")
+    @Column(name = "phone_number")
     private String phoneNumber;
     @NotNull
     @Column(name = "age")
     private Integer age;
-    @Column(name = "isdeleted")
+    @Column(name = "is_deleted")
     private boolean deleted;
 
     public Users(String name, String email, String phoneNumber, Integer age) {
