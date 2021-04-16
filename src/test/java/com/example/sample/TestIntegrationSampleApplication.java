@@ -34,7 +34,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(initializers = TestIntegrationSampleApplication.Initializer.class)
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application-integration.properties")
-@Ignore
 public class TestIntegrationSampleApplication {
 
     @Autowired
@@ -44,12 +43,14 @@ public class TestIntegrationSampleApplication {
     @Autowired
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @ClassRule
-    public static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres")
-            .withDatabaseName("postgres")
-            .withUsername("user")
-            .withPassword("user");
-
+    private static PostgreSQLContainer postgres;
+    static {
+        postgres = new PostgreSQLContainer("postgres")
+                .withDatabaseName("postgres")
+                .withUsername("user")
+                .withPassword("user");
+        postgres.start();
+    }
     static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
         @Override
         public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
