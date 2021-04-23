@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -14,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @RestController
@@ -26,7 +24,7 @@ public class UsersController {
     public static final String defaultSize = "5";
 
     @Autowired
-    public UsersController(UsersRepository usersRepo, PagingRepository pagingRepo){
+    public UsersController(UsersRepository usersRepo, PagingRepository pagingRepo) {
         this.usersRepo = usersRepo;
         this.pagingRepo = pagingRepo;
     }
@@ -37,48 +35,41 @@ public class UsersController {
         return objectMapper.treeToValue(patched, Users.class);
     }
 
-    @GetMapping(value = "/users{pages}{size}", params = {"pages","size"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Users> getUsers(@RequestParam (value = "pages", defaultValue = defaultPages) int pages,
-                                @RequestParam (value = "size", defaultValue = defaultSize) int size){
-        PageRequest page = PageRequest.of(pages,size, Sort.by(Sort.Order.asc("name")));
+    @GetMapping(value = "/users{pages}{size}", params = {"pages", "size"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Users> getUsers(@RequestParam(value = "pages", defaultValue = defaultPages) int pages,
+                                @RequestParam(value = "size", defaultValue = defaultSize) int size) {
+        PageRequest page = PageRequest.of(pages, size, Sort.by(Sort.Order.asc("name")));
         return pagingRepo.findAll(page);
     }
 
     @RequestMapping(value = "/users/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Users getUserById(@PathVariable(value = "id", required = false) Long id){
+    public Users getUserById(@PathVariable(value = "id", required = false) Long id) {
         return usersRepo.findByIdAndDeletedIsFalse(id)
                 .orElseThrow(NotFoundException::new);
     }
 
-    @RequestMapping(value = "/users/{name}", params = "name", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Users getUserByName(@RequestParam(value = "name", required = false) String name){
-        return usersRepo.findByNameAndDeletedIsFalse(name)
-                .orElseThrow(NotFoundException::new);
-    }
-
     @PostMapping(value = "/users", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Users postUser(@RequestBody Users user){
-        return usersRepo.save(user);
+    public ResponseEntity<Users> postUser(@RequestBody Users user) {
+        //what if meeting db connection !!
+        return ResponseEntity.status(HttpStatus.CREATED).body(usersRepo.save(user));
     }
 
     @PatchMapping(path = "/users/{id}", consumes = "application/json-patch+json")
-    public ResponseEntity<Users> updateUsers(@PathVariable(value = "id") Long id, @RequestBody JsonPatch patch){
-        try{
+    public ResponseEntity<Users> updateUsers(@PathVariable(value = "id") Long id, @RequestBody JsonPatch patch) {
+        try {
             Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(NotFoundException::new);
-            Users userPatch = applyUsersToPatch(patch,user);
+            Users userPatch = applyUsersToPatch(patch, user);
             usersRepo.save(userPatch);
             return ResponseEntity.ok(userPatch);
         } catch (JsonPatchException | JsonProcessingException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
     @DeleteMapping("/users/{id}")
-    public Users deleteUserById(@PathVariable("id") Long id){
+    public ResponseEntity<String> deleteUserById(@PathVariable("id") Long id) {
         Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(NotFoundException::new);
         user.setDeleted(true);
-        return usersRepo.save(user);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

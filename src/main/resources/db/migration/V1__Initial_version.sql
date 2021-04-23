@@ -1,11 +1,11 @@
 CREATE TABLE users
 (
-    user_id      serial primary key,
+    id           serial primary key,
     name         varchar(50) not null,
     email        varchar(50) not null,
     phone_number varchar(12) not null,
     age          integer,
-    is_deleted   boolean default false
+    deleted      boolean default false
 );
 CREATE TABLE books
 (
@@ -13,8 +13,8 @@ CREATE TABLE books
     title    varchar(50) not null,
     author   varchar(50) not null,
     pages    integer,
-    user_id  serial,
+    user_id  integer,
     CONSTRAINT fk_user
         FOREIGN KEY (user_id)
-            REFERENCES users (user_id)
+            REFERENCES users (id)
 );

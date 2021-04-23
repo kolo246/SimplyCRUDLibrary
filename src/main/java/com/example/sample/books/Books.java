@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 @Table(name = "books")
 public class Books {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_books")
     private Long id;
     @NotNull
     @Column(name = "title")
@@ -25,7 +25,10 @@ public class Books {
     @NotNull
     @Column(name = "pages")
     private Integer pages;
-    @ManyToOne
+    @NotNull
+    @Column(name = "deleted")
+    private boolean deleted;
+    @ManyToOne()
     @JoinColumn(name = "user_id")
     private Users user_id;
 

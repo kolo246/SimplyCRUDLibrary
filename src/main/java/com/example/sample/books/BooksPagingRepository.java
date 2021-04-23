@@ -8,10 +8,13 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface BooksPagingRepository extends PagingAndSortingRepository<Books,Long> {
+public interface BooksPagingRepository extends PagingAndSortingRepository<Books, Long> {
     @Query("select b from Books b order by b.id")
     List<Books> findAll(PageRequest pageRequest);
-    @Query("select b from Books b where b.author = :author and b.pages >= 100 order by b.id")
-    List<Books> findBooksByAuthorAndWherePagesIsGreaterThan(@Param("author") String author,
-                                                            Pageable pageable);
+//
+//    @Query("select b from Books b where b.author = :author and b.pages >= 100 order by b.id")
+//    List<Books> findBooksByAuthorAndWherePagesIsGreaterThan(@Param("author") String author,
+//                                                            Pageable pageable);
+    @Query("select b from Books b where b.user_id = null order by b.id")
+    List<Books> findAllByBorrowIsFalse(Pageable pageable);
 }

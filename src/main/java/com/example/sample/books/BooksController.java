@@ -1,14 +1,19 @@
 package com.example.sample.books;
 
-import com.example.sample.users.NotFoundException;
 import com.example.sample.users.Users;
+import com.example.sample.users.UsersRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.awt.*;
 import java.util.List;
 
 @RestController
@@ -16,39 +21,71 @@ import java.util.List;
 public class BooksController {
     private final BooksRepository booksRepo;
     private final BooksPagingRepository pagingRepo;
+    private final UsersRepository usersRepo;
+    public static final String defaultPages = "0";
+    public static final String defaultSize = "5";
 
     @Autowired
-    public BooksController(BooksRepository booksRepo, BooksPagingRepository pagingRepo) {
+    public BooksController(BooksRepository booksRepo, BooksPagingRepository pagingRepo, UsersRepository usersRepo) {
         this.booksRepo = booksRepo;
         this.pagingRepo = pagingRepo;
+        this.usersRepo = usersRepo;
     }
 
-    @PostMapping(value = "/books/{id}")
-    public Books postBooks(@RequestBody Books book) {
-        return booksRepo.save(book);
+    private Books applyBooksToPatch(JsonPatch patch, Books targetBook) throws JsonPatchException, JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode patched = patch.apply(objectMapper.convertValue(targetBook, JsonNode.class));
+        return objectMapper.treeToValue(patched, Books.class);
     }
 
-    @GetMapping(value = "/books/{id}")
+    @PatchMapping(value = "/books/{id}", consumes = "application/json-patch+json")
+    public ResponseEntity<Books> updateBookTitleByAuthor(@PathVariable("id") Long id,
+                                                         @RequestBody JsonPatch patch) {
+        try {
+            Books bookToUpdate = booksRepo.findById(id).orElseThrow(NotFoundException::new);
+            Books patchedBook = applyBooksToPatch(patch, bookToUpdate);
+            booksRepo.save(patchedBook);
+            return ResponseEntity.status(HttpStatus.OK).body(patchedBook);
+        } catch (JsonPatchException | JsonProcessingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping(value = "/books")
+    public ResponseEntity<Books> postBooks(@RequestBody Books book) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(book);
+    }
+
+    @RequestMapping(value = "/books/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Books findBookById(@PathVariable("id") Long id) {
         return booksRepo.findById(id).orElseThrow(NotFoundException::new);
     }
 
-    @GetMapping(value = "/books/{author}")
-    public Books findBookByAuthor(@PathVariable("author") String author) {
-        return booksRepo.findBooksByAuthor(author).orElseThrow(NotFoundException::new);
-    }
-
-    @GetMapping(value = "/books{pages}{size}", params = {"pages","size"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/books{pages}{size}/{borrow}", params = {"pages", "size","borrow"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Books> findAllBooks(
-            @RequestParam (value = "pages", defaultValue = "0") int pages,
-            @RequestParam (value = "size", defaultValue = "5") int size){
-        PageRequest pageRequest = PageRequest.of(pages,size);
+            @RequestParam(value = "pages", defaultValue = defaultPages) int pages,
+            @RequestParam(value = "size", defaultValue = defaultSize) int size,
+            @RequestParam(value = "borrow", defaultValue = "false") boolean isBorrow) {
+        PageRequest pageRequest = PageRequest.of(pages, size);
         return pagingRepo.findAll(pageRequest);
     }
 
-    @GetMapping(value = "/books/{author}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Books> findBooksByAuthorWherePagesIsGraterThan100(@PathVariable ("author") String author){
-        Pageable pageable = PageRequest.of(0, 5);
-        return pagingRepo.findBooksByAuthorAndWherePagesIsGreaterThan(author, pageable);
+    @PutMapping(value = "/books/{id_books}/reserve/{user_id}")
+    public ResponseEntity<Books> reserveBook(@PathVariable("id_books") Long id_books,
+                             @PathVariable("user_id") Long user_id) {
+        Books reserveBook = booksRepo.findById(id_books).orElseThrow(NotFoundException::new);
+        if (reserveBook.getUser_id() != null) {
+            return ResponseEntity.unprocessableEntity().body(reserveBook);
+        }
+        Users user = usersRepo.findByIdAndDeletedIsFalse(user_id).orElseThrow(com.example.sample.users.NotFoundException::new);
+        reserveBook.setUser_id(user);
+        return ResponseEntity.status(HttpStatus.OK).body(reserveBook);
+    }
+
+    @DeleteMapping(value = "/books/{id}")
+    public ResponseEntity<String> deleteBookById(@PathVariable("id") Long id) {
+        Books bookToDelete = booksRepo.findById(id).orElseThrow(NotFoundException::new);
+        bookToDelete.setDeleted(true);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
