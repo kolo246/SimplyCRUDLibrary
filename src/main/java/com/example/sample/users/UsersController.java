@@ -37,7 +37,7 @@ public class UsersController {
     }
 
     @RequestMapping(value = "/users/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Users getUserById(@PathVariable(value = "id", required = false) Long id) {
+    public Users getUserById(@PathVariable(value = "id") Long id) {
         return usersRepo.findByIdAndDeletedIsFalse(id)
                 .orElseThrow(() -> new NotFoundException("Not found user with id "+ id));
     }

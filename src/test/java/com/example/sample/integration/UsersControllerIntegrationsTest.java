@@ -8,11 +8,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -30,12 +33,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ContextConfiguration(classes = ConfigIntegrationContainer.class)
 @AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 @TestPropertySource("classpath:application-integration.properties")
-@Ignore
+@ComponentScan("com.example.sample")
 public class UsersControllerIntegrationsTest {
     @Autowired
     private MockMvc mockMvc;
-    @MockBean
+    @Autowired
     private UsersRepository usersRepo;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -43,7 +47,7 @@ public class UsersControllerIntegrationsTest {
     public void testPagination() throws Exception {
         insertUsers();
         //test default values, size in both objects should be 5
-        MvcResult result = mockMvc.perform(get("/api/users"))
+        MvcResult result = mockMvc.perform(get("/api/users?pages&size"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -85,11 +89,11 @@ public class UsersControllerIntegrationsTest {
                 .andReturn();
         listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
-        Assertions.assertEquals(listUsers.get(0).getName(),"Andrzej");
-        Assertions.assertEquals(listUsers.get(1).getName(),"Jasiek");
-        Assertions.assertEquals(listUsers.get(2).getName(),"Pablo");
-        Assertions.assertEquals(listUsers.get(3).getName(),"Tadek");
-        Assertions.assertEquals(listUsers.get(4).getName(),"Wladek");
+        Assertions.assertEquals("Andrzej",listUsers.get(0).getName());
+        Assertions.assertEquals("Jasiek",listUsers.get(1).getName());
+        Assertions.assertEquals("Pablo",listUsers.get(2).getName());
+        Assertions.assertEquals("Tadek",listUsers.get(3).getName());
+        Assertions.assertEquals("Wladek",listUsers.get(4).getName());
     }
 
     @Test
@@ -99,7 +103,7 @@ public class UsersControllerIntegrationsTest {
         MvcResult result = mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(user)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
         //parsing json to obj
         Users responseUser = objectMapper.readValue(result.getResponse().getContentAsString(), Users.class);
@@ -115,12 +119,12 @@ public class UsersControllerIntegrationsTest {
         Users getUsers = objectMapper.readValue(getResult.getResponse().getContentAsString(), Users.class);
         //comparing objects, responseUser must be equal to getUsers
         Assertions.assertEquals(responseUser, getUsers);
-        //test delete users by id, after that user is not found
+        //test delete users by id
         mockMvc.perform(delete("/api/users/{id}", responseUser.getId()))
                 .andExpect(status().isOk());
         //user is not found
         mockMvc.perform(get("/api/users/{id}", responseUser.getId()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
     }
 
     private void insertUsers() {
