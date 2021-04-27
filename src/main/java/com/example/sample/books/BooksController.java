@@ -11,6 +11,7 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,12 +33,6 @@ public class BooksController {
         this.booksRepo = booksRepo;
         this.pagingRepo = pagingRepo;
         this.usersRepo = usersRepo;
-    }
-
-    private Books applyBooksToPatch(JsonPatch patch, Books targetBook) throws JsonPatchException, JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode patched = patch.apply(objectMapper.convertValue(targetBook, JsonNode.class));
-        return objectMapper.treeToValue(patched, Books.class);
     }
 
     @PatchMapping(value = "/books/{id}", consumes = "application/json-patch+json")

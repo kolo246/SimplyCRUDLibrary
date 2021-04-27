@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class BooksControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
-    @MockBean
+    @Autowired
     private BooksRepository booksRepo;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
