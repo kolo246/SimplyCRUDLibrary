@@ -1,8 +1,8 @@
 package com.example.sample.users;
 
+import com.example.sample.extra.PatchObject;
+import com.example.sample.exceptions.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +29,9 @@ public class UsersController {
         this.pagingRepo = pagingRepo;
     }
 
-    private Users applyUsersToPatch(JsonPatch patch, Users targetUser) throws JsonPatchException, JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode patched = patch.apply(objectMapper.convertValue(targetUser, JsonNode.class));
-        return objectMapper.treeToValue(patched, Users.class);
-    }
-
-    @GetMapping(value = "/users{pages}{size}", params = {"pages", "size"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Users> getUsers(@RequestParam(value = "pages", defaultValue = defaultPages) int pages,
-                                @RequestParam(value = "size", defaultValue = defaultSize) int size) {
+    @RequestMapping(value = "/users", params = {"pages", "size"}, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+    public List<Users> getUsers(@RequestParam(required = false, value = "pages", defaultValue = defaultPages) int pages,
+                                @RequestParam(required = false, value = "size", defaultValue = defaultSize) int size) {
         PageRequest page = PageRequest.of(pages, size, Sort.by(Sort.Order.asc("name")));
         return pagingRepo.findAll(page);
     }
@@ -45,7 +39,7 @@ public class UsersController {
     @RequestMapping(value = "/users/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Users getUserById(@PathVariable(value = "id", required = false) Long id) {
         return usersRepo.findByIdAndDeletedIsFalse(id)
-                .orElseThrow(NotFoundException::new);
+                .orElseThrow(() -> new NotFoundException("Not found user with id "+ id));
     }
 
     @PostMapping(value = "/users", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -57,8 +51,9 @@ public class UsersController {
     @PatchMapping(path = "/users/{id}", consumes = "application/json-patch+json")
     public ResponseEntity<Users> updateUsers(@PathVariable(value = "id") Long id, @RequestBody JsonPatch patch) {
         try {
-            Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(NotFoundException::new);
-            Users userPatch = applyUsersToPatch(patch, user);
+            Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(() -> new NotFoundException("Not found user with id "+ id));
+            PatchObject<Users> patchObject = new PatchObject<>(Users.class);
+            Users userPatch = patchObject.applyPatchObject(user, patch);
             usersRepo.save(userPatch);
             return ResponseEntity.ok(userPatch);
         } catch (JsonPatchException | JsonProcessingException e) {
@@ -68,7 +63,7 @@ public class UsersController {
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<String> deleteUserById(@PathVariable("id") Long id) {
-        Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(NotFoundException::new);
+        Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(() -> new NotFoundException("Not found user with id "+ id));
         user.setDeleted(true);
         return ResponseEntity.status(HttpStatus.OK).build();
     }

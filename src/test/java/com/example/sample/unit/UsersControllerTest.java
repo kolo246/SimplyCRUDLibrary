@@ -1,5 +1,6 @@
-package com.example.sample;
+package com.example.sample.unit;
 
+import com.example.sample.exceptions.NotFoundException;
 import com.example.sample.users.Users;
 import com.example.sample.users.UsersRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -19,6 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -76,11 +78,13 @@ public class UsersControllerTest {
 
     @Test
     public void testGetUserByIdNotFound() throws Exception {
-        given(usersRepo.findByIdAndDeletedIsFalse(anyLong())).willThrow(new com.example.sample.books.NotFoundException());
-        mockMvc.perform(get("/api/users/1")
+        user.setId(1L);
+        given(usersRepo.findById(user.getId())).willThrow(new NotFoundException("Not found user with id "+ user.getId()));
+        MvcResult result = mockMvc.perform(get("/api/users/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn();
+        Assertions.assertEquals("Not found user with id "+ user.getId(), Objects.requireNonNull(result.getResolvedException()).getMessage());
     }
 
     @Test

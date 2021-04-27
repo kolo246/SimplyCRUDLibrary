@@ -1,7 +1,8 @@
-package com.example.sample;
+package com.example.sample.unit;
 
 import com.example.sample.books.Books;
 import com.example.sample.books.BooksRepository;
+import com.example.sample.exceptions.NotFoundException;
 import com.example.sample.users.Users;
 import com.example.sample.users.UsersRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,10 +19,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.AssertionErrors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.mockito.BDDMockito.*;
@@ -87,6 +90,17 @@ public class BooksControllerTest {
         Books foundBook = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
         });
         Assertions.assertEquals(book, foundBook);
+    }
+
+    @Test
+    public void testGetBookByIdNotFound() throws Exception {
+        book.setId(1L);
+        given(booksRepo.findById(book.getId())).willThrow(new NotFoundException("Not found book with id "+ book.getId()));
+        MvcResult result = mockMvc.perform(get("/api/books/1")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
+        Assertions.assertEquals("Not found book with id "+ book.getId(), Objects.requireNonNull(result.getResolvedException()).getMessage());
     }
 
     @Test

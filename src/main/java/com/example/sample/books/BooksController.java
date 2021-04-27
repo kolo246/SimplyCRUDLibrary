@@ -1,5 +1,7 @@
 package com.example.sample.books;
 
+import com.example.sample.extra.PatchObject;
+import com.example.sample.exceptions.NotFoundException;
 import com.example.sample.users.Users;
 import com.example.sample.users.UsersRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,8 +44,9 @@ public class BooksController {
     public ResponseEntity<Books> updateBookTitleByAuthor(@PathVariable("id") Long id,
                                                          @RequestBody JsonPatch patch) {
         try {
-            Books bookToUpdate = booksRepo.findById(id).orElseThrow(NotFoundException::new);
-            Books patchedBook = applyBooksToPatch(patch, bookToUpdate);
+            Books bookToUpdate = booksRepo.findById(id).orElseThrow(() -> new NotFoundException("Not found book with id "+ id));
+            PatchObject<Books> patchObject = new PatchObject<>(Books.class);
+            Books patchedBook = patchObject.applyPatchObject(bookToUpdate,patch);
             booksRepo.save(patchedBook);
             return ResponseEntity.status(HttpStatus.OK).body(patchedBook);
         } catch (JsonPatchException | JsonProcessingException e) {
@@ -58,7 +61,7 @@ public class BooksController {
 
     @RequestMapping(value = "/books/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Books findBookById(@PathVariable("id") Long id) {
-        return booksRepo.findById(id).orElseThrow(NotFoundException::new);
+        return booksRepo.findById(id).orElseThrow(() -> new NotFoundException("Not found book with id "+ id));
     }
 
     @GetMapping(value = "/books{pages}{size}/{borrow}", params = {"pages", "size","borrow"}, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -73,18 +76,18 @@ public class BooksController {
     @PutMapping(value = "/books/{id_books}/reserve/{user_id}")
     public ResponseEntity<Books> reserveBook(@PathVariable("id_books") Long id_books,
                              @PathVariable("user_id") Long user_id) {
-        Books reserveBook = booksRepo.findById(id_books).orElseThrow(NotFoundException::new);
+        Books reserveBook = booksRepo.findById(id_books).orElseThrow(() -> new NotFoundException("Not found book with id "+ id_books));
         if (reserveBook.getUser_id() != null) {
             return ResponseEntity.unprocessableEntity().body(reserveBook);
         }
-        Users user = usersRepo.findByIdAndDeletedIsFalse(user_id).orElseThrow(com.example.sample.users.NotFoundException::new);
+        Users user = usersRepo.findByIdAndDeletedIsFalse(user_id).orElseThrow(() -> new NotFoundException("Not found user with id "+ user_id));
         reserveBook.setUser_id(user);
         return ResponseEntity.status(HttpStatus.OK).body(reserveBook);
     }
 
     @DeleteMapping(value = "/books/{id}")
     public ResponseEntity<String> deleteBookById(@PathVariable("id") Long id) {
-        Books bookToDelete = booksRepo.findById(id).orElseThrow(NotFoundException::new);
+        Books bookToDelete = booksRepo.findById(id).orElseThrow(() -> new NotFoundException("Not found books with id "+ id));
         bookToDelete.setDeleted(true);
         return ResponseEntity.status(HttpStatus.OK).build();
     }

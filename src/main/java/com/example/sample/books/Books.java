@@ -2,6 +2,7 @@ package com.example.sample.books;
 
 import com.example.sample.users.Users;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
