@@ -45,8 +45,8 @@ public class BooksController {
                                                          @RequestBody JsonPatch patch) {
         try {
             Books bookToUpdate = booksRepo.findById(id).orElseThrow(() -> new NotFoundException("Not found book with id "+ id));
-            PatchObject<Books> patchObject = new PatchObject<>(Books.class);
-            Books patchedBook = patchObject.applyPatchObject(bookToUpdate,patch);
+            PatchObject<Books> patchObject = new PatchObject<>(bookToUpdate);
+            Books patchedBook = patchObject.applyPatchObject(patch);
             booksRepo.save(patchedBook);
             return ResponseEntity.status(HttpStatus.OK).body(patchedBook);
         } catch (JsonPatchException | JsonProcessingException e) {

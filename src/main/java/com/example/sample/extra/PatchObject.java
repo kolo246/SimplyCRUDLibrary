@@ -9,19 +9,21 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 
 public class PatchObject<T> {
-    private final Class<T> type;
+    private final T type;
+    private final Class<T> classType;
 
-    public PatchObject(Class<T> type) {
-        if ((type.isInstance(Books.class) || (type.isInstance(Users.class)))){
+    public PatchObject(T type) {
+        this.classType = (Class<T>) type.getClass();
+        if ((type instanceof Books) || (type instanceof Users)){
             this.type = type;
         }else {
             throw new IllegalArgumentException("The Object is not Books or Users object !!!");
         }
     }
 
-    public T applyPatchObject(T type, JsonPatch jsonPatch) throws JsonPatchException, JsonProcessingException {
+    public T applyPatchObject(JsonPatch jsonPatch) throws JsonPatchException, JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode patched = jsonPatch.apply(objectMapper.convertValue(type, JsonNode.class));
-        return objectMapper.treeToValue(patched, this.type);
+        JsonNode patched = jsonPatch.apply(objectMapper.convertValue(this.type, JsonNode.class));
+        return objectMapper.treeToValue(patched, classType);
     }
 }
