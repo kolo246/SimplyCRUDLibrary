@@ -5,6 +5,7 @@ import com.example.sample.users.UsersController;
 import com.example.sample.users.UsersRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = ConfigIntegrationContainer.class)
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application-integration.properties")
+@Ignore
 public class UsersControllerIntegrationsTest {
     @Autowired
     private MockMvc mockMvc;
