@@ -52,8 +52,8 @@ public class UsersController {
     public ResponseEntity<Users> updateUsers(@PathVariable(value = "id") Long id, @RequestBody JsonPatch patch) {
         try {
             Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(() -> new NotFoundException("Not found user with id "+ id));
-            PatchObject<Users> patchObject = new PatchObject<>(Users.class);
-            Users userPatch = patchObject.applyPatchObject(user, patch);
+            PatchObject<Users> patchObject = new PatchObject<>(user);
+            Users userPatch = patchObject.applyPatchObject(patch);
             usersRepo.save(userPatch);
             return ResponseEntity.ok(userPatch);
         } catch (JsonPatchException | JsonProcessingException e) {
