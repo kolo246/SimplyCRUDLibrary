@@ -2,6 +2,7 @@ package com.example.sample.users;
 
 import com.sun.istack.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -12,7 +13,7 @@ import javax.persistence.*;
 @Table(name = "users")
 public class Users {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
     @NotNull
@@ -22,12 +23,12 @@ public class Users {
     @Column(name = "email")
     private String email;
     @NotNull
-    @Column(name = "phonenumber")
+    @Column(name = "phone_number")
     private String phoneNumber;
     @NotNull
     @Column(name = "age")
     private Integer age;
-    @Column(name = "isdeleted")
+    @Column(name = "deleted")
     private boolean deleted;
 
     public Users(String name, String email, String phoneNumber, Integer age) {

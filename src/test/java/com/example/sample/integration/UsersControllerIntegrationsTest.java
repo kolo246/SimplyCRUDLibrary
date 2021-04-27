@@ -1,81 +1,58 @@
-package com.example.sample;
+package com.example.sample.integration;
 
 import com.example.sample.users.Users;
 import com.example.sample.users.UsersController;
 import com.example.sample.users.UsersRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ContextConfiguration(initializers = TestIntegrationSampleApplication.Initializer.class)
+@ContextConfiguration(classes = ConfigIntegrationContainer.class)
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application-integration.properties")
-@Ignore
-public class TestIntegrationSampleApplication {
-
+public class UsersControllerIntegrationsTest {
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
+    @MockBean
     private UsersRepository usersRepo;
-    @Autowired
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @ClassRule
-    public static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres")
-            .withDatabaseName("postgres")
-            .withUsername("user")
-            .withPassword("user");
-
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + postgres.getJdbcUrl(),
-                    "spring.datasource.username=" + postgres.getUsername(),
-                    "spring.datasource.password=" + postgres.getPassword()
-            ).applyTo(configurableApplicationContext.getEnvironment());
-        }
-    }
 
     @Test
     public void testPagination() throws Exception {
         insertUsers();
         //test default values, size in both objects should be 5
-        MvcResult result = mockMvc.perform(get("/api/users?pages&size"))
+        MvcResult result = mockMvc.perform(get("/api/users"))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
-        List<Users> listUsers = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        List<Users> listUsers = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
         });
         Assertions.assertEquals(Integer.parseInt(UsersController.defaultSize), listUsers.size());
         //test random values for pages and size
         MvcResult randomResult = mockMvc.perform(get("/api/users").param("pages", "0").param("size", "3"))
                 .andExpect(status().isOk())
                 .andReturn();
-        List<Users> randomList = objectMapper.readValue(randomResult.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        List<Users> randomList = objectMapper.readValue(randomResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
         Assertions.assertEquals(3, randomList.size());
         //test case if calling pagination multiple time, last call should return 0 element
@@ -83,28 +60,29 @@ public class TestIntegrationSampleApplication {
         mvcResult = mockMvc.perform(get("/api/users").param("pages", "0").param("size", "3"))
                 .andExpect(status().isOk())
                 .andReturn();
-        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
         Assertions.assertEquals(3, listUsers.size());
 
         mvcResult = mockMvc.perform(get("/api/users").param("pages", "1").param("size", "3"))
                 .andExpect(status().isOk())
                 .andReturn();
-        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
         Assertions.assertEquals(2, listUsers.size());
 
         mvcResult = mockMvc.perform(get("/api/users").param("pages", "2").param("size", "3"))
                 .andExpect(status().isOk())
                 .andReturn();
-        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>() {
+        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
         Assertions.assertEquals(0, listUsers.size());
         //sprawdz czy zwraca alafabetycznie
         mvcResult = mockMvc.perform(get("/api/users?pages&size"))
                 .andExpect(status().isOk())
                 .andReturn();
-        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<List<Users>>(){});
+        listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
         Assertions.assertEquals(listUsers.get(0).getName(),"Andrzej");
         Assertions.assertEquals(listUsers.get(1).getName(),"Jasiek");
         Assertions.assertEquals(listUsers.get(2).getName(),"Pablo");
