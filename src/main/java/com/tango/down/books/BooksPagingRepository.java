@@ -1,4 +1,4 @@
-package com.example.sample.books;
+package com.tango.down.books;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

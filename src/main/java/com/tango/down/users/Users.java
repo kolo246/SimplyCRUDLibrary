@@ -1,4 +1,4 @@
-package com.example.sample.users;
+package com.tango.down.users;
 
 import com.sun.istack.NotNull;
 import lombok.Data;

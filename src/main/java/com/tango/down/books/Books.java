@@ -1,6 +1,6 @@
-package com.example.sample.books;
+package com.tango.down.books;
 
-import com.example.sample.users.Users;
+import com.tango.down.users.Users;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

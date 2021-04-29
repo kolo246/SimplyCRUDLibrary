@@ -1,8 +1,8 @@
-package com.example.sample.integration;
+package com.tango.down.integration;
 
-import com.example.sample.books.Books;
-import com.example.sample.books.BooksPagingRepository;
-import com.example.sample.books.BooksRepository;
+import com.tango.down.books.Books;
+import com.tango.down.books.BooksPagingRepository;
+import com.tango.down.books.BooksRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = ConfigIntegrationContainer.class)
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application-integration.properties")
-@ComponentScan("com.example.sample")
+@ComponentScan("com.tango.down")
 public class BooksControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -65,7 +65,8 @@ public class BooksControllerIntegrationTest {
                 "    }\n" +
                 "]";
         Iterable<Books> books = booksRepo.findAll();
-        Books foundBook = booksRepo.findById(books.iterator().next().getId()).get();
+        Books foundBook = booksRepo.findById(books.iterator().next().getId()).orElse(null);
+        assert foundBook != null;
         MvcResult result = mockMvc.perform(patch("/api/books/{id}", foundBook.getId())
                 .contentType("application/json-patch+json")
                 .content(patchBody))
@@ -81,7 +82,8 @@ public class BooksControllerIntegrationTest {
     @Test
     public void testFindBooksById() throws Exception {
         Iterable<Books> books = booksRepo.findAll();
-        Books foundBook = booksRepo.findById(books.iterator().next().getId()).get();
+        Books foundBook = booksRepo.findById(books.iterator().next().getId()).orElse(null);
+        assert foundBook != null;
         MvcResult result = mockMvc.perform(get("/api/books/{id}", foundBook.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -149,8 +151,9 @@ public class BooksControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
-        List<Books> listNotBorrow = objectMapper.readValue(notBorrow.getResponse().getContentAsString(), new TypeReference<>() {});
-        List<Books> expectedList = pagingRepo.findAllByBorrowIsFalse(false, PageRequest.of(0,7,Sort.by("id")));
+        List<Books> listNotBorrow = objectMapper.readValue(notBorrow.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        List<Books> expectedList = pagingRepo.findAllByBorrowIsFalse(false, PageRequest.of(0, 7, Sort.by("id")));
         Assertions.assertEquals(expectedList.size(), listNotBorrow.size());
         //test all borrow books
         borrowedBook = pagingList.get(0);
@@ -163,8 +166,9 @@ public class BooksControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
-        List<Books> resultBook = objectMapper.readValue(borrowResult.getResponse().getContentAsString(), new TypeReference<>() {});
-        List<Books> expectedBorrowSize = pagingRepo.findAllByBorrowIsFalse(true, PageRequest.of(0,7,Sort.by("id")));
+        List<Books> resultBook = objectMapper.readValue(borrowResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        List<Books> expectedBorrowSize = pagingRepo.findAllByBorrowIsFalse(true, PageRequest.of(0, 7, Sort.by("id")));
 
         Assertions.assertEquals(expectedBorrowSize.size(), resultBook.size());
         //test all books
@@ -175,33 +179,37 @@ public class BooksControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
-        List<Books> allBooks = objectMapper.readValue(allResult.getResponse().getContentAsString(), new TypeReference<>() {});
-        List<Books> expectedBooks = pagingRepo.findAll(PageRequest.of(0,7,Sort.by("id")));
+        List<Books> allBooks = objectMapper.readValue(allResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        List<Books> expectedBooks = pagingRepo.findAll(PageRequest.of(0, 7, Sort.by("id")));
         Assertions.assertEquals(expectedBooks.size(), allBooks.size());
 
     }
 
     @Test
     public void testInsertBook() throws Exception {
-        Books insertBook = new Books("Wesel", "Wyspianski",526);
+        Books insertBook = new Books("Wesel", "Wyspianski", 526);
         MvcResult insertResult = mockMvc.perform(post("/api/books")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(insertBook)))
                 .andExpect(status().isCreated())
                 .andReturn();
-        Books resultBook = objectMapper.readValue(insertResult.getResponse().getContentAsString(), new TypeReference<>(){});
+        Books resultBook = objectMapper.readValue(insertResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
         insertBook.setId(resultBook.getId());
-        Assertions.assertEquals(insertBook,resultBook);
+        Assertions.assertEquals(insertBook, resultBook);
     }
 
     @Test
     public void testDeleteBookById() throws Exception {
         Iterable<Books> books = booksRepo.findAll();
-        Books foundBook = booksRepo.findById(books.iterator().next().getId()).get();
+        Books foundBook = booksRepo.findById(books.iterator().next().getId()).orElse(null);
+        assert foundBook != null;
         mockMvc.perform(delete("/api/books/{id}", foundBook.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
-        Books deletedBook = booksRepo.findById(foundBook.getId()).get();
+        Books deletedBook = booksRepo.findById(foundBook.getId()).orElse(null);
+        assert deletedBook != null;
         Assertions.assertTrue(deletedBook.isDeleted());
     }
 

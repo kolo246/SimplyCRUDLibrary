@@ -1,7 +1,7 @@
-package com.example.sample.extra;
+package com.tango.down.extra;
 
-import com.example.sample.books.Books;
-import com.example.sample.users.Users;
+import com.tango.down.books.Books;
+import com.tango.down.users.Users;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,9 +14,9 @@ public class PatchObject<T> {
 
     public PatchObject(T type) {
         this.classType = (Class<T>) type.getClass();
-        if ((type instanceof Books) || (type instanceof Users)){
+        if ((type instanceof Books) || (type instanceof Users)) {
             this.type = type;
-        }else {
+        } else {
             throw new IllegalArgumentException("The Object is not Books or Users object !!!");
         }
     }
