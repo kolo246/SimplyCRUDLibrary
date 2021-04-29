@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/api")
@@ -60,12 +61,14 @@ public class BooksController {
 
     @RequestMapping(value = "/books{pages}{size}{borrow}", params = {"pages", "size","borrow"}, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
     public List<Books> findAllBooks(
-            @RequestParam(value = "pages", defaultValue = defaultPages) int pages,
-            @RequestParam(value = "size", defaultValue = defaultSize) int size,
-            @RequestParam(value = "borrow", defaultValue = "false") boolean isBorrow) {
+            @RequestParam(value = "pages", defaultValue = defaultPages, required = false) int pages,
+            @RequestParam(value = "size", defaultValue = defaultSize, required = false) int size,
+            @RequestParam(value = "borrow", required = false) String isBorrow) {
         PageRequest pageRequest = PageRequest.of(pages, size, Sort.by("id"));
-        return pagingRepo.findAllByBorrowIsFalse(isBorrow, pageRequest);
-        //do poprawy funkcja
+        if (!isBorrow.isEmpty()){
+            return pagingRepo.findAllByBorrowIsFalse(Boolean.parseBoolean(isBorrow), pageRequest);
+        }
+        return pagingRepo.findAll(pageRequest);
     }
 
     @PutMapping(value = "/books/{id_books}/reserve/{user_id}")
