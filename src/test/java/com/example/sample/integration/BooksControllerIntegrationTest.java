@@ -107,7 +107,7 @@ public class BooksControllerIntegrationTest {
         MvcResult result = mockMvc.perform(get("/api/books")
                 .param("pages", "")
                 .param("size", "")
-                .param("borrow", "false")
+                .param("borrow", "")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -138,6 +138,47 @@ public class BooksControllerIntegrationTest {
         Pageable page = PageRequest.of(0, 7, Sort.by("id"));
         List<Books> pagingList = pagingRepo.findAllByBorrowIsFalse(false, page);
         Assertions.assertEquals(pagingList.get(0).getId(), sortList.get(0).getId());
+        //test all not borrow books
+        Books borrowedBook = pagingList.get(4);
+        borrowedBook.setBorrow(true);
+        booksRepo.save(borrowedBook);
+        MvcResult notBorrow = mockMvc.perform(get("/api/books")
+                .param("pages", "0")
+                .param("size", "7")
+                .param("borrow", "false")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<Books> listNotBorrow = objectMapper.readValue(notBorrow.getResponse().getContentAsString(), new TypeReference<>() {});
+        List<Books> expectedList = pagingRepo.findAllByBorrowIsFalse(false, PageRequest.of(0,7,Sort.by("id")));
+        Assertions.assertEquals(expectedList.size(), listNotBorrow.size());
+        //test all borrow books
+        borrowedBook = pagingList.get(0);
+        borrowedBook.setBorrow(true);
+        booksRepo.save(borrowedBook);
+        MvcResult borrowResult = mockMvc.perform(get("/api/books")
+                .param("pages", "0")
+                .param("size", "7")
+                .param("borrow", "true")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<Books> resultBook = objectMapper.readValue(borrowResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        List<Books> expectedBorrowSize = pagingRepo.findAllByBorrowIsFalse(true, PageRequest.of(0,7,Sort.by("id")));
+
+        Assertions.assertEquals(expectedBorrowSize.size(), resultBook.size());
+        //test all books
+        MvcResult allResult = mockMvc.perform(get("/api/books")
+                .param("pages", "0")
+                .param("size", "7")
+                .param("borrow", "")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<Books> allBooks = objectMapper.readValue(allResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        List<Books> expectedBooks = pagingRepo.findAll(PageRequest.of(0,7,Sort.by("id")));
+        Assertions.assertEquals(expectedBooks.size(), allBooks.size());
+
     }
 
     @Test
