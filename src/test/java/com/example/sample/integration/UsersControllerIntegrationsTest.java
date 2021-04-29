@@ -5,6 +5,8 @@ import com.example.sample.users.UsersController;
 import com.example.sample.users.UsersRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -43,9 +45,18 @@ public class UsersControllerIntegrationsTest {
     private UsersRepository usersRepo;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Before
+    public void setUpData(){
+        insertUsers();
+    }
+
+    @After
+    public void cleanDB(){
+        usersRepo.deleteAll();
+    }
+
     @Test
     public void testPagination() throws Exception {
-        insertUsers();
         //test default values, size in both objects should be 5
         MvcResult result = mockMvc.perform(get("/api/users?pages&size"))
                 .andDo(print())
@@ -98,7 +109,7 @@ public class UsersControllerIntegrationsTest {
 
     @Test
     public void createUserInDB() throws Exception {
-        Users user = new Users("Pablo", "pablo@wp.pl", "123-123-1234", 34);
+        Users user = new Users("Gustavo", "pablo@wp.pl", "123-123-1234", 34);
         //create user in db and get result
         MvcResult result = mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -120,15 +131,18 @@ public class UsersControllerIntegrationsTest {
         //comparing objects, responseUser must be equal to getUsers
         Assertions.assertEquals(responseUser, getUsers);
         //test delete users by id
-        mockMvc.perform(delete("/api/users/{id}", responseUser.getId()))
-                .andExpect(status().isOk());
+        MvcResult deleteResult = mockMvc.perform(delete("/api/users/{id}", responseUser.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+        Users deletedUser = objectMapper.readValue(deleteResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        Assertions.assertTrue(deletedUser.isDeleted());
         //user is not found
-        mockMvc.perform(get("/api/users/{id}", responseUser.getId()))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/users/{id}", deletedUser.getId()))
+                .andExpect(status().isNotFound());
     }
 
     private void insertUsers() {
-        Users user = usersRepo.save(new Users("Pablo", "pablo@wp.pl", "123-123-1234", 34));
+        usersRepo.save(new Users("Pablo", "pablo@wp.pl", "123-123-1234", 34));
         usersRepo.save(new Users("Jasiek", "jasiek@wp.pl", "123-234-2345", 12));
         usersRepo.save(new Users("Wladek", "wladek@wp.pl", "123-345-3456", 45));
         usersRepo.save(new Users("Tadek", "tadek@wp.pl", "123-456-4567", 67));
