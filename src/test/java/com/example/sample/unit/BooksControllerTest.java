@@ -19,7 +19,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.AssertionErrors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -82,7 +81,8 @@ public class BooksControllerTest {
 
     @Test
     public void testGetBookById() throws Exception {
-        when(booksRepo.findById(anyLong())).thenReturn(Optional.of(book));
+        Long id = 1L;
+        when(booksRepo.findBookById(id,false)).thenReturn(Optional.of(book));
         MvcResult result = mockMvc.perform(get("/api/books/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -127,9 +127,33 @@ public class BooksControllerTest {
         MvcResult result = mockMvc.perform(put("/api/books/1/reserve/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(422))
                 .andReturn();
+        Assertions.assertEquals(422, result.getResponse().getStatus());
+    }
+
+    @Test
+    public void testBorrowBook() throws Exception {
+        when(booksRepo.findById(anyLong())).thenReturn(Optional.of(book));
+        Users users = new Users("Pablo", "pablo@wp.pl", "123-123-1234", 34);
+        users.setId(1L);
+        when(usersRepo.findByIdAndDeletedIsFalse(anyLong())).thenReturn(Optional.of(users));
+        MvcResult result = mockMvc.perform(put("/api/books/1/reserve/1")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
         Books reservedBook = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
         });
         Assertions.assertNotNull(reservedBook.getUser_id());
+    }
+
+    @Test
+    public void testCannotBorrowBook() throws Exception {
+        book.setBorrow(true);
+        given(booksRepo.findById(anyLong())).willReturn(Optional.of(book));
+        MvcResult result = mockMvc.perform(put("/api/books/1/borrow/1")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(422))
+                .andReturn();
+        Assertions.assertEquals(422, result.getResponse().getStatus());
     }
 
     @Test
@@ -139,5 +163,4 @@ public class BooksControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
-
 }

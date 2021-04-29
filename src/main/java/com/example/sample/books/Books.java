@@ -2,7 +2,6 @@ package com.example.sample.books;
 
 import com.example.sample.users.Users;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -29,6 +28,9 @@ public class Books {
     @NotNull
     @Column(name = "deleted")
     private boolean deleted;
+    @NotNull
+    @Column(name = "borrow")
+    private boolean borrow;
     @ManyToOne()
     @JoinColumn(name = "user_id")
     private Users user_id;

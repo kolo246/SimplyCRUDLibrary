@@ -62,9 +62,10 @@ public class UsersController {
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<String> deleteUserById(@PathVariable("id") Long id) {
+    public ResponseEntity<Users> deleteUserById(@PathVariable("id") Long id) {
         Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(() -> new NotFoundException("Not found user with id "+ id));
         user.setDeleted(true);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        usersRepo.save(user);
+        return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 }
