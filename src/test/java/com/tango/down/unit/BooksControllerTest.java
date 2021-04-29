@@ -1,10 +1,10 @@
-package com.example.sample.unit;
+package com.tango.down.unit;
 
-import com.example.sample.books.Books;
-import com.example.sample.books.BooksRepository;
-import com.example.sample.exceptions.NotFoundException;
-import com.example.sample.users.Users;
-import com.example.sample.users.UsersRepository;
+import com.tango.down.books.Books;
+import com.tango.down.books.BooksRepository;
+import com.tango.down.exceptions.NotFoundException;
+import com.tango.down.users.Users;
+import com.tango.down.users.UsersRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
@@ -82,7 +82,7 @@ public class BooksControllerTest {
     @Test
     public void testGetBookById() throws Exception {
         Long id = 1L;
-        when(booksRepo.findBookById(id,false)).thenReturn(Optional.of(book));
+        when(booksRepo.findBookById(id, false)).thenReturn(Optional.of(book));
         MvcResult result = mockMvc.perform(get("/api/books/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -95,12 +95,12 @@ public class BooksControllerTest {
     @Test
     public void testGetBookByIdNotFound() throws Exception {
         book.setId(1L);
-        given(booksRepo.findById(book.getId())).willThrow(new NotFoundException("Not found book with id "+ book.getId()));
+        given(booksRepo.findById(book.getId())).willThrow(new NotFoundException("Not found book with id " + book.getId()));
         MvcResult result = mockMvc.perform(get("/api/books/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn();
-        Assertions.assertEquals("Not found book with id "+ book.getId(), Objects.requireNonNull(result.getResolvedException()).getMessage());
+        Assertions.assertEquals("Not found book with id " + book.getId(), Objects.requireNonNull(result.getResolvedException()).getMessage());
     }
 
     @Test

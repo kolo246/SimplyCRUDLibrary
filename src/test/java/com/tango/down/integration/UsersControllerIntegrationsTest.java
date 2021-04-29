@@ -1,13 +1,12 @@
-package com.example.sample.integration;
+package com.tango.down.integration;
 
-import com.example.sample.users.Users;
-import com.example.sample.users.UsersController;
-import com.example.sample.users.UsersRepository;
+import com.tango.down.users.Users;
+import com.tango.down.users.UsersController;
+import com.tango.down.users.UsersRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,7 +23,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.*;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -37,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ExtendWith(MockitoExtension.class)
 @TestPropertySource("classpath:application-integration.properties")
-@ComponentScan("com.example.sample")
+@ComponentScan("com.tango.down")
 public class UsersControllerIntegrationsTest {
     @Autowired
     private MockMvc mockMvc;
@@ -46,12 +44,12 @@ public class UsersControllerIntegrationsTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
-    public void setUpData(){
+    public void setUpData() {
         insertUsers();
     }
 
     @After
-    public void cleanDB(){
+    public void cleanDB() {
         usersRepo.deleteAll();
     }
 
@@ -100,11 +98,11 @@ public class UsersControllerIntegrationsTest {
                 .andReturn();
         listUsers = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
-        Assertions.assertEquals("Andrzej",listUsers.get(0).getName());
-        Assertions.assertEquals("Jasiek",listUsers.get(1).getName());
-        Assertions.assertEquals("Pablo",listUsers.get(2).getName());
-        Assertions.assertEquals("Tadek",listUsers.get(3).getName());
-        Assertions.assertEquals("Wladek",listUsers.get(4).getName());
+        Assertions.assertEquals("Andrzej", listUsers.get(0).getName());
+        Assertions.assertEquals("Jasiek", listUsers.get(1).getName());
+        Assertions.assertEquals("Pablo", listUsers.get(2).getName());
+        Assertions.assertEquals("Tadek", listUsers.get(3).getName());
+        Assertions.assertEquals("Wladek", listUsers.get(4).getName());
     }
 
     @Test
@@ -134,7 +132,8 @@ public class UsersControllerIntegrationsTest {
         MvcResult deleteResult = mockMvc.perform(delete("/api/users/{id}", responseUser.getId()))
                 .andExpect(status().isOk())
                 .andReturn();
-        Users deletedUser = objectMapper.readValue(deleteResult.getResponse().getContentAsString(), new TypeReference<>() {});
+        Users deletedUser = objectMapper.readValue(deleteResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
         Assertions.assertTrue(deletedUser.isDeleted());
         //user is not found
         mockMvc.perform(get("/api/users/{id}", deletedUser.getId()))

@@ -1,7 +1,7 @@
-package com.example.sample.users;
+package com.tango.down.users;
 
-import com.example.sample.extra.PatchObject;
-import com.example.sample.exceptions.NotFoundException;
+import com.tango.down.extra.PatchObject;
+import com.tango.down.exceptions.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -39,7 +39,7 @@ public class UsersController {
     @RequestMapping(value = "/users/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Users getUserById(@PathVariable(value = "id") Long id) {
         return usersRepo.findByIdAndDeletedIsFalse(id)
-                .orElseThrow(() -> new NotFoundException("Not found user with id "+ id));
+                .orElseThrow(() -> new NotFoundException("Not found user with id " + id));
     }
 
     @PostMapping(value = "/users", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -51,7 +51,7 @@ public class UsersController {
     @PatchMapping(path = "/users/{id}", consumes = "application/json-patch+json")
     public ResponseEntity<Users> updateUsers(@PathVariable(value = "id") Long id, @RequestBody JsonPatch patch) {
         try {
-            Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(() -> new NotFoundException("Not found user with id "+ id));
+            Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(() -> new NotFoundException("Not found user with id " + id));
             PatchObject<Users> patchObject = new PatchObject<>(user);
             Users userPatch = patchObject.applyPatchObject(patch);
             usersRepo.save(userPatch);
@@ -63,7 +63,7 @@ public class UsersController {
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Users> deleteUserById(@PathVariable("id") Long id) {
-        Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(() -> new NotFoundException("Not found user with id "+ id));
+        Users user = usersRepo.findByIdAndDeletedIsFalse(id).orElseThrow(() -> new NotFoundException("Not found user with id " + id));
         user.setDeleted(true);
         usersRepo.save(user);
         return ResponseEntity.status(HttpStatus.OK).body(user);

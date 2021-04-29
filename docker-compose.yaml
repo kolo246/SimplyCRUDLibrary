@@ -1,4 +1,4 @@
-services: #service 1: definition of PostgrSQL database
+services: #service 1: definition of PostgreSQL database
   db:
     image: postgres:alpine
     container_name: postgresDB

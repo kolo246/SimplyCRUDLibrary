@@ -1,4 +1,4 @@
-package com.example.sample.users;
+package com.tango.down.users;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.Query;

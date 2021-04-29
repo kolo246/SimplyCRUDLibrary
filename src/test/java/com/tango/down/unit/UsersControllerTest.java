@@ -1,8 +1,8 @@
-package com.example.sample.unit;
+package com.tango.down.unit;
 
-import com.example.sample.exceptions.NotFoundException;
-import com.example.sample.users.Users;
-import com.example.sample.users.UsersRepository;
+import com.tango.down.exceptions.NotFoundException;
+import com.tango.down.users.Users;
+import com.tango.down.users.UsersRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
@@ -79,12 +79,12 @@ public class UsersControllerTest {
     @Test
     public void testGetUserByIdNotFound() throws Exception {
         user.setId(1L);
-        given(usersRepo.findById(user.getId())).willThrow(new NotFoundException("Not found user with id "+ user.getId()));
+        given(usersRepo.findById(user.getId())).willThrow(new NotFoundException("Not found user with id " + user.getId()));
         MvcResult result = mockMvc.perform(get("/api/users/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn();
-        Assertions.assertEquals("Not found user with id "+ user.getId(), Objects.requireNonNull(result.getResolvedException()).getMessage());
+        Assertions.assertEquals("Not found user with id " + user.getId(), Objects.requireNonNull(result.getResolvedException()).getMessage());
     }
 
     @Test

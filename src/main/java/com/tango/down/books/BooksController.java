@@ -1,13 +1,12 @@
-package com.example.sample.books;
+package com.tango.down.books;
 
-import com.example.sample.extra.PatchObject;
-import com.example.sample.exceptions.NotFoundException;
-import com.example.sample.users.Users;
-import com.example.sample.users.UsersRepository;
+import com.tango.down.exceptions.NotFoundException;
+import com.tango.down.extra.PatchObject;
+import com.tango.down.users.Users;
+import com.tango.down.users.UsersRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import org.hibernate.annotations.Where;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -17,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/api")
@@ -39,7 +37,7 @@ public class BooksController {
     public ResponseEntity<Books> updateBookTitleByAuthor(@PathVariable("id") Long id,
                                                          @RequestBody JsonPatch patch) {
         try {
-            Books bookToUpdate = booksRepo.findById(id).orElseThrow(() -> new NotFoundException("Not found book with id "+ id));
+            Books bookToUpdate = booksRepo.findById(id).orElseThrow(() -> new NotFoundException("Not found book with id " + id));
             PatchObject<Books> patchObject = new PatchObject<>(bookToUpdate);
             Books patchedBook = patchObject.applyPatchObject(patch);
             booksRepo.save(patchedBook);
@@ -56,16 +54,16 @@ public class BooksController {
 
     @RequestMapping(value = "/books/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Books findBookById(@PathVariable("id") Long id) {
-        return booksRepo.findBookById(id, false).orElseThrow(() -> new NotFoundException("Not found book with id "+ id));
+        return booksRepo.findBookById(id, false).orElseThrow(() -> new NotFoundException("Not found book with id " + id));
     }
 
-    @RequestMapping(value = "/books{pages}{size}{borrow}", params = {"pages", "size","borrow"}, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+    @RequestMapping(value = "/books{pages}{size}{borrow}", params = {"pages", "size", "borrow"}, produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
     public List<Books> findAllBooks(
             @RequestParam(value = "pages", defaultValue = defaultPages, required = false) int pages,
             @RequestParam(value = "size", defaultValue = defaultSize, required = false) int size,
             @RequestParam(value = "borrow", required = false) String isBorrow) {
         PageRequest pageRequest = PageRequest.of(pages, size, Sort.by("id"));
-        if (!isBorrow.isEmpty()){
+        if (!isBorrow.isEmpty()) {
             return pagingRepo.findAllByBorrowIsFalse(Boolean.parseBoolean(isBorrow), pageRequest);
         }
         return pagingRepo.findAll(pageRequest);
@@ -73,24 +71,24 @@ public class BooksController {
 
     @PutMapping(value = "/books/{id_books}/reserve/{user_id}")
     public ResponseEntity<Books> reserveBook(@PathVariable("id_books") Long id_books,
-                             @PathVariable("user_id") Long user_id) {
-        Books reserveBook = booksRepo.findById(id_books).orElseThrow(() -> new NotFoundException("Not found book with id "+ id_books));
+                                             @PathVariable("user_id") Long user_id) {
+        Books reserveBook = booksRepo.findById(id_books).orElseThrow(() -> new NotFoundException("Not found book with id " + id_books));
         if (reserveBook.getUser_id() != null || reserveBook.isBorrow()) {
             return ResponseEntity.unprocessableEntity().build();
         }
-        Users user = usersRepo.findByIdAndDeletedIsFalse(user_id).orElseThrow(() -> new NotFoundException("Not found user with id "+ user_id));
+        Users user = usersRepo.findByIdAndDeletedIsFalse(user_id).orElseThrow(() -> new NotFoundException("Not found user with id " + user_id));
         reserveBook.setUser_id(user);
         return ResponseEntity.status(HttpStatus.OK).body(reserveBook);
     }
 
     @PutMapping(value = "/books/{id_books}/borrow/{id_user}")
     public ResponseEntity<Books> borrowBook(@PathVariable("id_books") Long id_books,
-                                            @PathVariable("id_user") Long id_user){
+                                            @PathVariable("id_user") Long id_user) {
         Books borrowBook = booksRepo.findById(id_books).orElseThrow(() -> new NotFoundException("Not found book with id " + id_books));
-        if (borrowBook.isBorrow()){
+        if (borrowBook.isBorrow()) {
             return ResponseEntity.unprocessableEntity().build();
         }
-        Users user = usersRepo.findByIdAndDeletedIsFalse(id_user).orElseThrow(() -> new NotFoundException("Not found user with id "+ id_user));
+        Users user = usersRepo.findByIdAndDeletedIsFalse(id_user).orElseThrow(() -> new NotFoundException("Not found user with id " + id_user));
         borrowBook.setBorrow(true);
         borrowBook.setUser_id(user);
         return ResponseEntity.status(HttpStatus.OK).body(booksRepo.save(borrowBook));
@@ -98,7 +96,7 @@ public class BooksController {
 
     @DeleteMapping(value = "/books/{id}")
     public ResponseEntity<String> deleteBookById(@PathVariable("id") Long id) {
-        Books bookToDelete = booksRepo.findById(id).orElseThrow(() -> new NotFoundException("Not found books with id "+ id));
+        Books bookToDelete = booksRepo.findById(id).orElseThrow(() -> new NotFoundException("Not found books with id " + id));
         if (bookToDelete.isBorrow()) return ResponseEntity.unprocessableEntity().build();
         bookToDelete.setDeleted(true);
         booksRepo.save(bookToDelete);

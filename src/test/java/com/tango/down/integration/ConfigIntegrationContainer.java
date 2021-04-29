@@ -1,4 +1,4 @@
-package com.example.sample.integration;
+package com.tango.down.integration;
 
 import org.junit.ClassRule;
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -13,12 +13,12 @@ public class ConfigIntegrationContainer implements ApplicationContextInitializer
             .withUsername("user")
             .withPassword("user");
 
-        @Override
-        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + postgres.getJdbcUrl(),
-                    "spring.datasource.username=" + postgres.getUsername(),
-                    "spring.datasource.password=" + postgres.getPassword()
-            ).applyTo(configurableApplicationContext.getEnvironment());
-        }
+    @Override
+    public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
+        TestPropertyValues.of(
+                "spring.datasource.url=" + postgres.getJdbcUrl(),
+                "spring.datasource.username=" + postgres.getUsername(),
+                "spring.datasource.password=" + postgres.getPassword()
+        ).applyTo(configurableApplicationContext.getEnvironment());
+    }
 }
