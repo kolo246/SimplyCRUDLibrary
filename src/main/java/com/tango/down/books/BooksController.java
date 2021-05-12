@@ -69,9 +69,9 @@ public class BooksController {
         return pagingRepo.findAll(pageRequest);
     }
 
-    @PutMapping(value = "/books/{id_books}/reserve/{user_id}")
+    @PutMapping(value = "/books/{id_books}/reserve/{id_user}")
     public ResponseEntity<Books> reserveBook(@PathVariable("id_books") Long id_books,
-                                             @PathVariable("user_id") Long user_id) {
+                                             @PathVariable("id_user") Long user_id) {
         Books reserveBook = booksRepo.findById(id_books).orElseThrow(() -> new NotFoundException("Not found book with id " + id_books));
         if (reserveBook.getUser_id() != null || reserveBook.isBorrow()) {
             return ResponseEntity.unprocessableEntity().build();
