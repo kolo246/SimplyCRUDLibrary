@@ -23,7 +23,6 @@ public class UsersController {
     public static final String defaultPages = "0";
     public static final String defaultSize = "5";
 
-    @Autowired
     public UsersController(UsersRepository usersRepo, PagingRepository pagingRepo) {
         this.usersRepo = usersRepo;
         this.pagingRepo = pagingRepo;
