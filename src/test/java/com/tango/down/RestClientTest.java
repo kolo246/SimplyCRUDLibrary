@@ -101,8 +101,8 @@ public class RestClientTest {
 
     @Test
     public void whenCallingGetUser_thenGetHttpClientErrorException(){
-        serviceServer.expect(requestTo(urlUsers + "/" + anyLong())).andRespond(withStatus(HttpStatus.NOT_FOUND));
-        assertThrows(HttpClientErrorException.class, () -> client.getUser(anyLong()));
+        serviceServer.expect(requestTo(urlUsers + "/" + 1L)).andRespond(withStatus(HttpStatus.NOT_FOUND));
+        assertThrows(HttpClientErrorException.class, () -> client.getUser(1L));
     }
 
     @Test
@@ -166,8 +166,8 @@ public class RestClientTest {
 
     @Test
     public void whenCallingFetchBookById_thenGetBackHttpClientErrorException(){
-        serviceServer.expect(requestTo(urlBooks + "/" + anyLong())).andRespond(withStatus(HttpStatus.NOT_FOUND));
-        assertThrows(HttpClientErrorException.class, () -> client.fetchBookById(anyLong()));
+        serviceServer.expect(requestTo(urlBooks + "/" + 1L)).andRespond(withStatus(HttpStatus.NOT_FOUND));
+        assertThrows(HttpClientErrorException.class, () -> client.fetchBookById(1L));
     }
 
     @Test
