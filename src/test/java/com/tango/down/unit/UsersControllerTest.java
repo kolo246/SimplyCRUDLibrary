@@ -96,7 +96,7 @@ public class UsersControllerTest {
                 "        \"value\":\"Pablo\"\n" +
                 "    }\n" +
                 "]";
-        when(usersRepo.findByIdAndDeletedIsFalse(anyLong())).thenReturn(Optional.of(user));
+        when(usersRepo.findByIdAndDeletedIsFalse(1L)).thenReturn(Optional.of(user));
         MvcResult result = mockMvc.perform(patch("/api/users/1")
                 .contentType("application/json-patch+json")
                 .content(patchBody))
